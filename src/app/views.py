@@ -4,6 +4,7 @@ from django.views import View
 
 from .models import Image, Word
 from .forms import ImageForm
+from .tasks import easy_ocr_task
 
 
 class IndexView(View):
@@ -31,6 +32,10 @@ class ImageView(View):
             
             item.save()
 
+            # Call the task to process the image
+            if item.algorithm.lower() == 'easyocr':
+                easy_ocr_task.delay(item.id, item.image.path)
+
         form = ImageForm()
         return render(request, "add.html", {"form": form})
 
@@ -45,17 +50,28 @@ class ListView(View):
     
 class SingleView(View):
     def get(self, request, id):
-        image = Image.objects.get(id=id)
-        words = Word.objects.filter(image=image)
+        image_obj = Image.objects.get(id=id)
+        words = Word.objects.filter(image=image_obj)
         
-        words_concat = ' '.join([word.word for word in words])
+        words_concat = ', '.join([word.word.capitalize() for word in words])
         
-        if words_concat == '':
-            if not image.is_processed:
-                words_concat = 'Still Processing'
-            else:
-                words_concat = 'No words found'
+        if not image_obj.is_processed:
+            words_concat = 'Still Processing'
+
+        elif words_concat == '':
+            words_concat = 'No words found'
         
-        status = 'Done' if image.is_processed else 'Processing'
+        status = 'Done' if image_obj.is_processed else 'Processing'
+
         
-        return render(request, "view.html", {"image": image, "words": words_concat, "status": status})
+        image_to_show = image_obj.image 
+        if status == 'Done' and image_obj.processed_image:
+            image_to_show = image_obj.processed_image
+
+        return render(request, "view.html", {
+            "image_obj": image_obj, 
+            "image_to_show": image_to_show, 
+            "words": words_concat, 
+            "status": status
+            }
+        )

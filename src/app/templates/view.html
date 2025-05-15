@@ -5,7 +5,7 @@
 <div class="mx-5 py-4 border-top border-dark">
     <div class="row justify-content-around">
         <div class="col-xl-5 px-5 my-5">
-            <img src="{{ MEDIA_URL }}{{ image.image.url }}" style="max-width: 500px;" class="img-fluid" alt="...">
+            <img src="{{ MEDIA_URL }}{{ image_to_show.url }}" style="max-width: 500px;" class="img-fluid" alt="...">
         </div>
 
         <div class="col-xl-6 my-5">
@@ -16,14 +16,14 @@
                         <p class="h4">Image Name:</p>
                     </dt>
                     <dd class="col-sm-9">
-                        <p class="h4 text-secondary">{{ image.name }}</p>
+                        <p class="h4 text-secondary">{{ image_obj.name }}</p>
                     </dd>
                     
                     <dt class="col-sm-3">
                         <p class="h4">Algorithm Used:</p>
                     </dt>
                     <dd class="col-sm-9">
-                        <p class="h4 text-secondary">{{ image.algorithm }}</p>
+                        <p class="h4 text-secondary">{{ image_obj.algorithm }}</p>
                     </dd>
                     <dt class="col-sm-3">
                         <p class="h4">Status:</p>
