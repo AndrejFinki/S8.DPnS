@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 
 import cv2
 import pytesseract
+import keras_ocr
 from easyocr import Reader
 
 from .models import Image, Word
@@ -111,6 +112,49 @@ def pytesseract_task(id, image_path):
                     cv2.putText(image, cleaned_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FONT_COLOR, FONT_SIZE)
                 else:
                     cv2.putText(image, 'Too long to display text.', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FONT_COLOR, FONT_SIZE)
+
+    # Save the words to the database
+    image_obj = Image.objects.get(id=id)
+
+    for word in words:
+        word_obj = Word(image=image_obj, word=word)
+        word_obj.save()
+
+    # Save the processed image
+    _, buffer = cv2.imencode('.jpg', image)
+
+    image_obj.image.save(
+        os.path.basename(image_path),
+        ContentFile(buffer.tobytes()),
+        save=False
+    )
+
+    image_obj.is_processed = True
+    image_obj.save()
+
+@shared_task
+def keras_ocr_task(id, image_path):
+    """
+    Task to process an image using Keras OCR and save the results.
+    """
+    pipeline = keras_ocr.pipeline.Pipeline()
+
+    # Read the image
+    image = keras_ocr.tools.read(image_path)
+
+    # Process the result
+    result = pipeline.recognize([image])[0]
+
+    words = []
+    for text, box in result:
+        cleaned_text = clean_text(text)
+
+        if cleaned_text:
+            words.append(cleaned_text)
+
+            x1, y1, x2, y2 = box[0][0], box[0][1], box[2][0], box[2][1]
+            cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), BORDER_COLOR, BORDER_THICKNESS)
+            cv2.putText(image, cleaned_text, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FONT_COLOR, FONT_SIZE)
 
     # Save the words to the database
     image_obj = Image.objects.get(id=id)
