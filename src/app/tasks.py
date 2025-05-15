@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 import cv2
+import pytesseract
 from easyocr import Reader
 
 from .models import Image, Word
@@ -24,7 +25,7 @@ def clean_text(text):
     return ''.join([c for c in text if c.isalnum() or c.isspace()])
 
 
-def extract_result(image_path, result):
+def extract_result_easyocr(image_path, result):
     """
     Extract the result from the OCR process and draw rectangles around the detected words.
     """
@@ -61,7 +62,7 @@ def easy_ocr_task(id, image_path):
     )
 
     # Process the result
-    image, words = extract_result(image_path, result)
+    image, words = extract_result_easyocr(image_path, result)
 
     # Save the words to the database
     image_obj = Image.objects.get(id=id)
@@ -83,3 +84,49 @@ def easy_ocr_task(id, image_path):
     image_obj.save()
 
 
+@shared_task
+def pytesseract_task(id, image_path):
+    """
+    Task to process an image using Tesseract OCR and save the results.
+    """
+    # Read the image
+    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+
+    # Process the result
+    result = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+
+    words = []
+    for i in range(len(result['text'])):
+        if int(result['conf'][i]) > 0:
+            x1, y1, x2, y2 = result['left'][i], result['top'][i], result['width'][i], result['height'][i]
+            cleaned_text = clean_text(result['text'][i])
+
+            if cleaned_text:
+                for word in cleaned_text.split():
+                    words.append(word)
+
+                cv2.rectangle(image, (x1, y1), (x1 + x2, y1 + y2), BORDER_COLOR, BORDER_THICKNESS)
+
+                if len(cleaned_text) < 20:
+                    cv2.putText(image, cleaned_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FONT_COLOR, FONT_SIZE)
+                else:
+                    cv2.putText(image, 'Too long to display text.', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FONT_COLOR, FONT_SIZE)
+
+    # Save the words to the database
+    image_obj = Image.objects.get(id=id)
+
+    for word in words:
+        word_obj = Word(image=image_obj, word=word)
+        word_obj.save()
+
+    # Save the processed image
+    _, buffer = cv2.imencode('.jpg', image)
+
+    image_obj.image.save(
+        os.path.basename(image_path),
+        ContentFile(buffer.tobytes()),
+        save=False
+    )
+
+    image_obj.is_processed = True
+    image_obj.save()

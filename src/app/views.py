@@ -4,7 +4,7 @@ from django.views import View
 
 from .models import Image, Word
 from .forms import ImageForm
-from .tasks import easy_ocr_task
+from .tasks import easy_ocr_task, pytesseract_task
 
 
 class IndexView(View):
@@ -35,6 +35,9 @@ class ImageView(View):
             # Call the task to process the image
             if item.algorithm.lower() == 'easyocr':
                 easy_ocr_task.delay(item.id, item.image.path)
+
+            elif item.algorithm.lower() == 'pytesseract':
+                pytesseract_task.delay(item.id, item.image.path)
 
         form = ImageForm()
         return render(request, "add.html", {"form": form})
