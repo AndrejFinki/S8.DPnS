@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="mx-5">
+    <!-- <h1 class="text-center mx-5 py-4 border-top border-dark">Processed Images</h1> -->
+    <table class="table px-5">
+        <thead>
+            <tr>
+                <th class="px-5 text-uppercase fs-4 text-center" scope="col">#</th>
+                <th class="px-5 text-uppercase fs-4 text-center" scope="col">Image Name</th>
+                <th class="px-5 text-uppercase fs-4 text-center" scope="col">Algorithm Used</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+            <tr>
+                <th class="px-5 fs-5 text-center" scope="row"> {{ forloop.counter }}</th>
+                <td class="px-5 fs-5 text-center"> {{ image.name }} </td>
+                <td class="px-5 fs-5 text-center"> {{ image.algorithm }} </td>
+                <td class="text-center">
+                    <a href="{% url 'single_view' image.id %}" class="btn btn-secondary px-5">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

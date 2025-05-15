@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="mx-5 py-4 border-top border-dark">
+    <div class="row justify-content-around">
+        <div class="col-xl-5 px-5 my-5">
+            <img src="{{ MEDIA_URL }}{{ image.image.url }}" style="max-width: 500px;" class="img-fluid" alt="...">
+        </div>
+
+        <div class="col-xl-6 my-5">
+            <div class="mb-5 border p-3 rounded-3 bg-light border-dark">
+                <p class="h2 mb-4">Information About Image:</p>
+                <dl class="row justify-content-center">
+                    <dt class="col-sm-3">
+                        <p class="h4">Image Name:</p>
+                    </dt>
+                    <dd class="col-sm-9">
+                        <p class="h4 text-secondary">{{ image.name }}</p>
+                    </dd>
+                    
+                    <dt class="col-sm-3">
+                        <p class="h4">Algorithm Used:</p>
+                    </dt>
+                    <dd class="col-sm-9">
+                        <p class="h4 text-secondary">{{ image.algorithm }}</p>
+                    </dd>
+                    <dt class="col-sm-3">
+                        <p class="h4">Status:</p>
+                    </dt>
+                    <dd class="col-sm-9">
+                        <p class="h4 text-secondary">{{ status }}</p>
+                    </dd>
+                </dl>
+            </div>
+
+            <div class="mb-5 border p-3 rounded-3 bg-light border-dark">
+                <p class="h2 mb-3">Words Detected:</p>
+                <p class="h4 text-secondary">{{ words }}</p>
+            </div>
+
+            <button class="btn btn-secondary px-5 border-dark border-opacity-25" onclick="window.location.href='/list/'">
+                Back to List
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

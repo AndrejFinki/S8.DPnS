@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="container my-5">
+    
+    <div class="bg-light border border-secondary border-opacity-25 rounded-3 py-5">
+        <form action="/add/" method="post" enctype="multipart/form-data" class="mx-5">
+            {% csrf_token %}
+            {{ form }}
+            
+            <input class="btn btn-secondary mt-5 px-5 border-dark border-opacity-25" type="submit" value="Submit">
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}
