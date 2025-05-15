@@ -25,6 +25,26 @@ source .venv/bin/activate
 pip install -r requirements.txt 
 ```
 
+To run the Django migrations use the following commands:
+```bash
+cd src
+python manage.py migrate
+```
+
+# Running the Application
+
+To generate a Celery worker run the following commands:
+```bash
+cd src
+celery -A ocr worker -l INFO
+```
+
+To run the django project use the following commands:
+```bash
+cd src
+python manage.py runserver
+```
+
 # Contributing
 - Andrej Shekerov  [216050, FCSE - Skopje]
 - Nikola Petrovski [216051, FCSE - Skopje]
